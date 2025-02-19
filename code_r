@@ -1,0 +1,37 @@
+# Installer les packages nécessaires
+if (!requireNamespace("osmdata", quietly = TRUE)) {
+  install.packages("osmdata")
+}
+
+if (!requireNamespace("leaflet", quietly = TRUE)) {
+  install.packages("leaflet")
+}
+
+# Charger les packages
+library(osmdata)
+library(leaflet)
+
+# Définir la zone de requête pour Ille-et-Vilaine
+bbox <- getbb("Ille-et-Vilaine, France")
+
+# Construire la requête pour obtenir les aires d'accueil
+query <- opq(bbox = bbox) %>%
+  add_osm_feature(key = "amenity", value = "caravan_site")
+
+# Exécuter la requête
+aire_accueil <- osmdata_sf(query)
+
+# Vérifier les données obtenues
+print(aire_accueil)
+
+# Extraire les points d'intérêt (POI)
+poi <- aire_accueil$osm_points
+
+# Créer une carte interactive avec leaflet
+map <- leaflet(poi) %>%
+  addTiles() %>%
+  addCircleMarkers(~lon, ~lat, popup = ~name, radius = 5, color = "blue", fill = TRUE, fillOpacity = 0.7) %>%
+  setView(lng = mean(bbox[1, ]), lat = mean(bbox[2, ]), zoom = 10)
+
+# Afficher la carte
+print(map)
